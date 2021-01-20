@@ -31,34 +31,32 @@ jobs:
           MATRIX_CONTEXT: ${{ toJSON(matrix) }}
         run: echo "$MATRIX_CONTEXT"
 
-      # This action determines the container image tags for this build
-      - name: Generate unique tag
-        id: version-info
+      - name: Tag for master builds
+        id: tags_master
         run:  |
-              REF_ID="${GITHUB_REF}"
-              REF_ID="${REF_ID#refs/}"
-              REF_ID="${REF_ID#heads/}"
-              REF_ID="${REF_ID/pull\//pr-}"
-              REF_ID="${REF_ID%/merge}"
-              echo "${REF_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:8}"
+          REF_ID="${GITHUB_REF}"
+          REF_ID="${REF_ID#refs/}"
+          REF_ID="${REF_ID#heads/}"
+          echo "::set-output name=tags::foo/$IMAGE_BASENAME:${REF_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:8}"
         shell: bash
-      - name: Docker Metadata Basic
+
+      - name: Tag for semantic version
+        id: tags_other
         uses: crazy-max/ghaction-docker-meta@v1
         with:
           images: foo/${{ env.IMAGE_BASENAME }}
-      - name: Docker Metadata SemVer
-#        if: github.ref != "refs/heads/${{ github.event.repository.default_branch }}"
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          images: foo/${{ env.IMAGE_BASENAME }}
+          tag-latest: false
           tag-semver: |
             {{version}}
             {{major}}.{{minor}}
             {{major}}
-      - name: Docker Metadata for Master Build
-#        if: github.ref == "refs/heads/${{ github.event.repository.default_branch }}"
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          images: foo/${{ env.IMAGE_BASENAME }}
-          tag-custom: ${{ github.event.repository.default_branch }}-${{ github.run_number }}
-          tag-custom-only: true
+
+      - name: Select right tags
+        id: tags
+        run: |
+          if [[ ${GITHUB_REF} == *"refs/heads/${{ github.event.repository.default_branch }}"* ]]; then
+            echo "::set-output name=tags::${{ steps.tags_master.outputs.tags }}"
+          else
+            echo "::set-output name=tags::${{ steps.tags_other.outputs.tags }}"
+          fi
+        shell: bash
