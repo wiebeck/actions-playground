@@ -40,7 +40,7 @@ jobs:
               REF_ID="${REF_ID#heads/}"
               REF_ID="${REF_ID/pull\//pr-}"
               REF_ID="${REF_ID%/merge}"
-              echo "::set-output name=image-tag::${REF_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:8}"
+              echo "${REF_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:8}"
         shell: bash
       - name: Docker Metadata Basic
         uses: crazy-max/ghaction-docker-meta@v1
