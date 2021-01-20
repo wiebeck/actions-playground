@@ -28,3 +28,11 @@ jobs:
         env:
           MATRIX_CONTEXT: ${{ toJSON(matrix) }}
         run: echo "$MATRIX_CONTEXT"
+
+      # This action determines the container image tags for this build
+      - name: Docker Metadata
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: foo/bar
+      - run: echo ${{ steps.docker_meta.outputs.tags }}
