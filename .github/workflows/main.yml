@@ -1,0 +1,7 @@
+name: playground
+on: push
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo Hello World!
