@@ -32,18 +32,39 @@ jobs:
         run: echo "$MATRIX_CONTEXT"
 
       # This action determines the container image tags for this build
-      - name: Docker Metadata
+      - name: Generate unique tag
+        id: version-info
+        run:  |
+              REF_ID="${GITHUB_REF}"
+              REF_ID="${REF_ID#refs/}"
+              REF_ID="${REF_ID#heads/}"
+              REF_ID="${REF_ID/pull\//pr-}"
+              REF_ID="${REF_ID%/merge}"
+              echo "::set-output name=image-tag::${REF_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:8}"
+        shell: bash
+      - name: Docker Metadata Basic
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v1
         with:
           images: foo/${{ env.IMAGE_BASENAME }}
-          tag-sha: true
-          tag-edge: true
-          tag-custom: -${{ github.run_number }}
+      - name: Docker Metadata SemVer
+        id: docker_meta
+        if: github.ref != "refs/heads/${{ github.event.repository.default_branch }}"
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: foo/${{ env.IMAGE_BASENAME }}
           tag-semver: |
             {{version}}
             {{major}}.{{minor}}
             {{major}}
+      - name: Docker Metadata for Master Build
+        id: docker_meta
+        if: github.ref == "refs/heads/${{ github.event.repository.default_branch }}"
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: foo/${{ env.IMAGE_BASENAME }}
+          tag-custom: ${{ github.event.repository.default_branch }}-${{ github.run_number }}
+          tag-custom-only: true
       # - name: append master version
       #   id: alltags
       #   if: github.ref == "refs/heads/${{ github.event.repository.default_branch }}"
