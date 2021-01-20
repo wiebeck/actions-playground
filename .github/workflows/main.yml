@@ -1,4 +1,4 @@
-name: playground
+name: playground2
 on: push
 jobs:
   experiment:
