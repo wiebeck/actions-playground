@@ -37,9 +37,16 @@ jobs:
         uses: crazy-max/ghaction-docker-meta@v1
         with:
           images: foo/${{ env.IMAGE_BASENAME }}
+          tag-sha: true
+          tag-edge: true
+          tag-custom: -${{ github.run_number }}
+          tag-semver: |
+            {{version}}
+            {{major}}.{{minor}}
+            {{major}}
       - run: echo ${{ steps.docker_meta.outputs.tags }}
       - name: append master version
         id: alltags
         if: github.ref == "refs/heads/${{ github.event.repository.default_branch }}"
-        run: echo "::set-output name=tags::${{ steps.docker_meta.outputs.tags }},$IMAGE_BASENAME-${{ github.run_number }}"
+        run: echo "::set-output name=tags::${{ steps.docker_meta.outputs.tags }},${{ env.IMAGE_BASENAME }}-${{ github.run_number }}"
       - run: echo ${{ steps.alltags.outputs.tags }}
