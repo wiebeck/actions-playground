@@ -22,17 +22,10 @@ jobs:
           STRATEGY_CONTEXT: ${{ toJSON(strategy) }}
         run: echo "$STRATEGY_CONTEXT"
 
-      - name: Determine Version
-        id: get_version
-        uses: battila7/get-version-action@v2
-
       - name: Generate Release Notes
         env:
           GH_REL_URL: https://github.com/buchanae/github-release-notes/releases/download/0.2.0/github-release-notes-linux-amd64-0.2.0.tar.gz
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd /tmp && curl -sSL ${GH_REL_URL} | tar xz && sudo mv github-release-notes /usr/local/bin/
-          echo '# Release Notes ${{ steps.get_version.outputs.version }}' > /tmp/release.txt
-          github-release-notes -org ${{ github.repository_owner }} -repo ${{ github.event.repository.name }} -since-latest-release -include-author >> /tmp/release.txt
-          cat /tmp/release.txt
-
+          github-release-notes -org ${{ github.repository_owner }} -repo ${{ github.event.repository.name }} -since-latest-release -include-author
