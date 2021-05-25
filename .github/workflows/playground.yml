@@ -29,3 +29,8 @@ jobs:
         run: |
           cd /tmp && curl -sSL ${GH_REL_URL} | tar xz && sudo mv github-release-notes /usr/local/bin/
           github-release-notes -org ${{ github.repository_owner }} -repo ${{ github.event.repository.name }} -since-latest-release -include-author
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
