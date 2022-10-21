@@ -2,8 +2,8 @@ name: The Playground Workflow
 
 on:
   push:
-    tags:
-      - v**
+    branches:
+      - "main"
 
 jobs:
   experiment:
@@ -21,16 +21,3 @@ jobs:
         env:
           STRATEGY_CONTEXT: ${{ toJSON(strategy) }}
         run: echo "$STRATEGY_CONTEXT"
-
-      - name: Generate Release Notes
-        env:
-          GH_REL_URL: https://github.com/buchanae/github-release-notes/releases/download/0.2.0/github-release-notes-linux-amd64-0.2.0.tar.gz
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd /tmp && curl -sSL ${GH_REL_URL} | tar xz && sudo mv github-release-notes /usr/local/bin/
-          github-release-notes -org ${{ github.repository_owner }} -repo ${{ github.event.repository.name }} -since-latest-release -include-author
-
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
