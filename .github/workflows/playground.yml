@@ -3,7 +3,7 @@ name: The Playground Workflow
 on:
   push:
     branches:
-      - "main"
+      - "master"
 
 jobs:
   experiment:
