@@ -1,4 +1,4 @@
-name: The Playground Workflow
+name: Yet Another Name
 
 on:
   push:
