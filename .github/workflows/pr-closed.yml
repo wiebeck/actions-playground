@@ -33,7 +33,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment ${{ github.event.number }} --body "Fixed in ${{ steps.determine-fix-version.outputs.version }}"
+          gh pr comment ${{ github.event.number }} --body "✅ Fixed in v${{ steps.determine-fix-version.outputs.version }}"
 
       - name: Do stuff with scripting
         uses: actions/github-script@v6
@@ -59,3 +59,16 @@ jobs:
             }
             const result = await github.graphql(query, variables)
             console.log(result)
+            const linkedIssues = [];
+            result.repository.pullRequest.closingIssuesReferences.edges.map(edge => {
+              linkedIssues.push(edge.node.number)
+            })
+            console.log(linkedIssues)
+            for (const issue of linkedIssues) {
+              github.rest.issues.createComment({
+                issue_number: issue,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '✅ Fixed in v${{ steps.determine-fix-version.outputs.version }}'
+              })
+            }
