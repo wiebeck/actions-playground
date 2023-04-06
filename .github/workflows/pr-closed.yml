@@ -1,4 +1,4 @@
-name: PR closed
+name: PR Merged
 
 on:
   pull_request:
