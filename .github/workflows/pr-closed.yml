@@ -28,3 +28,9 @@ jobs:
       - name: Output
         run: |
           echo "This PR would have a fix version of ${{ steps.determine-fix-version.outputs.version }}"
+
+      - name: Comment on PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.number }} --body "Fixed in ${{ steps.determine-fix-version.outputs.version }}"
