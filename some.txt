@@ -4,3 +4,4 @@ baz
 mop
 
 I changed something
+foo
