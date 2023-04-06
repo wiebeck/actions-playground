@@ -34,3 +34,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr comment ${{ github.event.number }} --body "Fixed in ${{ steps.determine-fix-version.outputs.version }}"
+
+      - name: Do stuff with scripting
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const query = `query($owner:String!, $name:String!, $prNum:Number!) {
+              repository(owner:$owner, name:$name){
+                pullRequest(number: $prNum) {
+                  closingIssuesReferences(first: 50) {
+                    edges {
+                      node {
+                        number
+                      }
+                    }
+                  }
+                }
+              }
+            }`;
+            const variables = {
+              owner: context.repo.owner,
+              name: context.repo.repo,
+              prNum: context.event.number
+            }
+            const result = await github.graphql(query, variables)
+            console.log(result)
