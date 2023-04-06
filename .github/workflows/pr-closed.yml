@@ -1,0 +1,74 @@
+name: PR Merged
+
+on:
+  pull_request:
+    branches: [ main, Scope_* ]
+    types: [ closed ]
+
+jobs:
+  merged:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged }}
+    steps:
+      - name: Dump GitHub context
+        run: echo '${{ toJSON(github) }}'
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 100
+
+      - name: Determine Fix Version
+        id: determine-fix-version
+        run: |
+          git fetch --tags
+          latest=$(git tag --merged HEAD --sort=version:refname | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | tail -1)
+          next=$(echo $latest | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{$NF=sprintf("%0*d", length($NF), ($NF+1)); print}')
+          echo "version=$next" >> $GITHUB_OUTPUT
+
+      - name: Output
+        run: |
+          echo "This PR would have a fix version of ${{ steps.determine-fix-version.outputs.version }}"
+
+      - name: Comment on PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.number }} --body "✅ Fixed in v${{ steps.determine-fix-version.outputs.version }}"
+
+      - name: Do stuff with scripting
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const query = `query($owner:String!, $name:String!, $prNum:Int!) {
+              repository(owner:$owner, name:$name){
+                pullRequest(number: $prNum) {
+                  closingIssuesReferences(first: 50) {
+                    edges {
+                      node {
+                        number
+                      }
+                    }
+                  }
+                }
+              }
+            }`;
+            const variables = {
+              owner: context.repo.owner,
+              name: context.repo.repo,
+              prNum: context.issue.number
+            }
+            const result = await github.graphql(query, variables)
+            console.log(result)
+            const linkedIssues = [];
+            result.repository.pullRequest.closingIssuesReferences.edges.map(edge => {
+              linkedIssues.push(edge.node.number)
+            })
+            console.log(linkedIssues)
+            for (const issue of linkedIssues) {
+              github.rest.issues.createComment({
+                issue_number: issue,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '✅ Fixed in v${{ steps.determine-fix-version.outputs.version }}'
+              })
+            }
