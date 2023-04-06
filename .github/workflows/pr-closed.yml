@@ -39,7 +39,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const query = `query($owner:String!, $name:String!, $prNum:Number!) {
+            const query = `query($owner:String!, $name:String!, $prNum:Int!) {
               repository(owner:$owner, name:$name){
                 pullRequest(number: $prNum) {
                   closingIssuesReferences(first: 50) {
