@@ -4,6 +4,7 @@ baz
 mop
 
 FOO
+BAR
 
 I changed something
 foo
